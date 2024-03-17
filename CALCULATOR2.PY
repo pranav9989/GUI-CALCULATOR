@@ -159,6 +159,156 @@ def perform_temperature_conversion(temperature_str, from_unit, to_unit, result_l
     except ValueError:
         result_label.config(text="Error: Please enter a valid number for the temperature.")
 
+def open_distance_converter():
+    converter_window = Toplevel(window)
+    converter_window.title("Distance Converter")
+
+    value_label = Label(converter_window, text="Value:")
+    value_label.grid(row=0, column=0, padx=10, pady=10)
+
+    value_entry = Entry(converter_window, font=('Helvetica', 16))
+    value_entry.grid(row=0, column=1, padx=10, pady=10)
+
+    from_unit_label = Label(converter_window, text="From Unit:")
+    from_unit_label.grid(row=1, column=0, padx=10, pady=10)
+
+    from_unit_var = StringVar()
+    from_unit_var.set("Meter")
+
+    from_unit_options = ["Meter", "Kilometer", "Mile"]
+    from_unit_menu = OptionMenu(converter_window, from_unit_var, *from_unit_options)
+    from_unit_menu.grid(row=1, column=1, padx=10, pady=10)
+
+    to_unit_label = Label(converter_window, text="To Unit:")
+    to_unit_label.grid(row=2, column=0, padx=10, pady=10)
+
+    to_unit_var = StringVar()
+    to_unit_var.set("Meter")
+
+    to_unit_options = ["Meter", "Kilometer", "Mile"]
+    to_unit_menu = OptionMenu(converter_window, to_unit_var, *to_unit_options)
+    to_unit_menu.grid(row=2, column=1, padx=10, pady=10)
+
+    result_label = Label(converter_window, text="")
+    result_label.grid(row=3, column=0, columnspan=2, pady=10)
+
+    convert_button = Button(converter_window, text="Convert", padx=20, pady=20, font=('Helvetica', 16),
+                            command=lambda: perform_distance_conversion(value_entry.get(), from_unit_var.get(), to_unit_var.get(), result_label))
+    convert_button.grid(row=4, column=0, columnspan=2, pady=10)
+
+# Function to perform the distance conversion and display the result
+def perform_distance_conversion(value_str, from_unit, to_unit, result_label):
+    try:
+        value = float(value_str)
+        converted_value = convert_distance(value, from_unit, to_unit)
+
+        if converted_value is not None:
+            result_str = f"Result: {value} {from_unit} = {converted_value:.2f} {to_unit}"
+            result_label.config(text=result_str)
+            save_to_file(result_str)  # Save the result to calculator history
+    except ValueError:
+        result_label.config(text="Error: Please enter a valid number for the distance.")
+
+def convert_distance(value, from_unit, to_unit):
+    # Define conversion factors for each unit
+    conversion_factors = {
+        'Meter': {
+            'Meter': 1,
+            'Kilometer': 0.001,
+            'Mile': 0.000621371,
+        },
+        'Kilometer': {
+            'Meter': 1000,
+            'Kilometer': 1,
+            'Mile': 0.621371,
+        },
+        'Mile': {
+            'Meter': 1609.34,
+            'Kilometer': 1.60934,
+            'Mile': 1,
+        },
+    }
+    
+    try:
+        # Convert value from 'from_unit' to 'to_unit'
+        converted_value = value * conversion_factors[from_unit][to_unit]
+        return converted_value
+    except KeyError:
+        print(f"Error: Conversion not supported for {from_unit} to {to_unit}")
+        return None
+    except Exception as e:
+        print(f"Error during distance conversion: {e}")
+        return None
+
+def calculate_compound_interest(principal, rate, time, compound_frequency):
+    try:
+        # Convert rate from percentage to decimal
+        rate /= 100
+
+        # Calculate compound interest
+        amount = principal * ((1 + rate / compound_frequency) ** (compound_frequency * time))
+        interest = amount - principal
+
+        return amount, interest
+    except Exception as e:
+        print(f"Error during compound interest calculation: {e}")
+        return None, None
+
+def open_compound_interest_calculator():
+    ci_window = Toplevel(window)
+    ci_window.title("Compound Interest Calculator")
+
+    principal_label = Label(ci_window, text="Principal:")
+    principal_label.grid(row=0, column=0, padx=10, pady=10)
+
+    principal_entry = Entry(ci_window, font=('Helvetica', 16))
+    principal_entry.grid(row=0, column=1, padx=10, pady=10)
+
+    rate_label = Label(ci_window, text="Rate (%):")
+    rate_label.grid(row=1, column=0, padx=10, pady=10)
+
+    rate_entry = Entry(ci_window, font=('Helvetica', 16))
+    rate_entry.grid(row=1, column=1, padx=10, pady=10)
+
+    time_label = Label(ci_window, text="Time (years):")
+    time_label.grid(row=2, column=0, padx=10, pady=10)
+
+    time_entry = Entry(ci_window, font=('Helvetica', 16))
+    time_entry.grid(row=2, column=1, padx=10, pady=10)
+
+    compound_frequency_label = Label(ci_window, text="Compound Frequency:")
+    compound_frequency_label.grid(row=3, column=0, padx=10, pady=10)
+
+    compound_frequency_var = StringVar()
+    compound_frequency_var.set("1")  # Default compound frequency is annually
+
+    compound_frequency_options = ["1 (Annually)", "2 (Semi-Annually)", "4 (Quarterly)", "12 (Monthly)"]
+    compound_frequency_menu = OptionMenu(ci_window, compound_frequency_var, *compound_frequency_options)
+    compound_frequency_menu.grid(row=3, column=1, padx=10, pady=10)
+
+    result_label = Label(ci_window, text="")
+    result_label.grid(row=4, column=0, columnspan=2, pady=10)
+
+    calculate_button = Button(ci_window, text="Calculate", padx=20, pady=20, font=('Helvetica', 16),
+                              command=lambda: perform_compound_interest_calculation(principal_entry.get(), rate_entry.get(), time_entry.get(), compound_frequency_var.get(), result_label))
+    calculate_button.grid(row=5, column=0, columnspan=2, pady=10)
+
+def perform_compound_interest_calculation(principal_str, rate_str, time_str, compound_frequency_str, result_label):
+    try:
+        principal = float(principal_str)
+        rate = float(rate_str)
+        time = float(time_str)
+        compound_frequency = int(compound_frequency_str.split()[0])  # Extract the numerical part of the compound frequency
+
+        amount, interest = calculate_compound_interest(principal, rate, time, compound_frequency)
+
+        if amount is not None and interest is not None:
+            result_str = f"Total Amount: {amount:.2f}\nInterest Earned: {interest:.2f}"
+            result_label.config(text=result_str)
+            save_to_file(result_str)  # Save the result to calculator history
+    except ValueError:
+        result_label.config(text="Error: Please enter valid numbers for the inputs.")
+
 #MAIN WINDOW
 window = Tk()
 
@@ -188,15 +338,16 @@ for (text, row, col) in buttons:
                     activebackground = 'white', activeforeground='#008080', )
     button.grid(row=row, column=col)
 
-ans_button = Button(window, text="ANS", padx=6, pady=20, font=('Helvetica', 16),
+ans_button = Button(window, text="ANS", padx=40, pady=20, font=('Helvetica', 16),
                     command=lambda: button_click('ANS'), fg='white', bg='#008080',
                     activebackground='white', activeforeground='#008080')
-ans_button.grid(row=5, column=0,)
+ans_button.grid(row=5, column=0, columnspan=2)  # Set columnspan to 2 for 'ANS' button
 
-del_button = Button(window, text="DEL", padx=6, pady=20, font=('Helvetica', 16),
+del_button = Button(window, text="DEL", padx=40, pady=20, font=('Helvetica', 16),
                     command=lambda: button_click('DEL'), fg='white', bg='#008080',
                     activebackground='white', activeforeground='#008080')
-del_button.grid(row=5, column=1,)
+del_button.grid(row=5, column=2, columnspan=2)  # Set columnspan to 2 for 'DEL' button
+
 
 def button_click(text):
     global expression, previous_result
@@ -242,14 +393,24 @@ def save_to_file(result):
         file.write(f"{expression} = {result}\n")
 
 
-currency_converter_button = Button(window, text="Currency Converter", padx=10, pady=10, 
+currency_converter_button = Button(window, text="CC", padx=12, pady=20, 
                                    font=('Helvetica', 16), command=open_currency_converter,
                                    fg = 'white', bg = '#008080', activebackground='white', activeforeground= '#008080')
-currency_converter_button.grid(row=6, column=0, columnspan=4, pady=5)
+currency_converter_button.grid(row=6, column=0, )
 
-temperature_converter_button = Button(window, text="Temperature Converter", padx=10, pady=10,
+temperature_converter_button = Button(window, text="TC", padx=12, pady=20,
                                       font=('Helvetica', 16), command=open_temperature_converter,
                                       fg='white', bg='#008080', activebackground='white', activeforeground='#008080')
-temperature_converter_button.grid(row=7, column=0, columnspan=4, pady=5)
+temperature_converter_button.grid(row=6, column=1, )
+
+distance_converter_button = Button(window, text="DC", padx=12, pady=20,
+                                      font=('Helvetica', 16), command=open_distance_converter,
+                                      fg='white', bg='#008080', activebackground='white', activeforeground='#008080')
+distance_converter_button.grid(row=6, column=2, )
+
+compound_interest_button = Button(window, text="CI", padx=12, pady=20,
+                                  font=('Helvetica', 16), command=open_compound_interest_calculator,
+                                  fg='white', bg='#008080', activebackground='white', activeforeground='#008080')
+compound_interest_button.grid(row=6, column=3, )
 
 window.mainloop()
