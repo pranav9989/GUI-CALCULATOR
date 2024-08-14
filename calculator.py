@@ -35,6 +35,7 @@ def convert_currency(amount, from_currency, to_currency):
     except Exception as e:
         print(f"Error during currency conversion: {e}")
         return None
+#This is an Edit
 
 # Function to open the currency converter window
 def open_currency_converter():
