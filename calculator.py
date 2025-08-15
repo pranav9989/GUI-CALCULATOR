@@ -1,9 +1,11 @@
 import requests
 from tkinter import *
+from tkinter import ttk
 
 previous_result = None
 prev_answers = []
 memory = None
+value=None
 
 #CURRENCY CONVERSION
 def convert_currency(amount, from_currency, to_currency):
@@ -285,7 +287,6 @@ def open_compound_interest_calculator():
 
     compound_frequency_var = StringVar()
     compound_frequency_var.set("1")  # Default compound frequency is annually
-
     compound_frequency_options = ["1 (Annually)", "2 (Semi-Annually)", "4 (Quarterly)", "12 (Monthly)"]
     compound_frequency_menu = OptionMenu(ci_window, compound_frequency_var, *compound_frequency_options)
     compound_frequency_menu.grid(row=3, column=1, padx=10, pady=10)
@@ -312,6 +313,49 @@ def perform_compound_interest_calculation(principal_str, rate_str, time_str, com
             save_to_file(result_str)  # Save the result to calculator history
     except ValueError:
         result_label.config(text="Error: Please enter valid numbers for the inputs.")
+def const_window():
+    global const_window
+    const_window = Toplevel(window)
+    const_window.title("Scientific constants")
+
+    # Create a Treeview widget for the table
+    table = ttk.Treeview(const_window, columns=('const', 'value', 'unit'))
+    table.heading("#0", text="ID")
+    table.heading("const", text="Constant")
+    table.heading("value", text="Value")
+    table.heading("unit", text="Unit")
+
+    constants_data = [
+        (0, "Speed of Light", "299792458", "m/s"),  # Index 0
+        (1, "Gravitational Constant", "0.0000000000667408", "m^3 kg^-1 s^-2"),  # Index 1
+        (2, "Planck's Constant", "0.000000000000000000000000000000662607015", "m^2 kg / s"),  # Index 2
+        (3, "Avogadro's Number", "602214076", "mol^-1"),  # Index 3
+        (4, "Boltzmann Constant", "0.000000000000000000000013806", "m^2 kg s^-2 K^-1"),  # Index 4
+        (5, "Electric Constant", "0.000000000008854187817", "F m^-1"),  # Index 5
+        (6, "Elementary Charge", "0.0000000000000000001602176634", "C"),  # Index 6
+        (7, "Faraday Constant", "96485.33212", "C mol^-1"),  # Index 7
+        (8, "Fine-Structure Constant", "0.0072973525693", ""),  # Index 8
+        (9, "Gas Constant", "8.314462618", "J mol^-1 K^-1"),  # Index 9
+    ]
+
+    for constant in constants_data:
+        table.insert("", "end", text=str(constant[0]), values=(constant[1], constant[2], constant[3]))
+
+    table.pack(expand=True, fill="both")
+    index_label = Label(const_window, text="Enter Index:")
+    index_entry = Entry(const_window)
+    index_button = Button(const_window, text="OK", command=lambda: store_index(index_entry.get(),constants_data))
+
+    index_label.pack(pady=5)
+    index_entry.pack(pady=5)
+    index_button.pack(pady=10)
+
+    def store_index(index,constdata):
+        global value,expression
+        value=constdata[int(index)][2]
+        expression=expression+str(value)
+        result_var.set(expression)
+        const_window.destroy()
 
 #MAIN WINDOW
 window = Tk()
@@ -323,7 +367,7 @@ expression = ''
 #window.geometry('300x400')
 window.configure(bg='#1e1e1e')
 window.title('CALCULATOR')
-icon = PhotoImage(file='calc.png')
+icon = PhotoImage(file='D:\python project\GUI-CALCULATOR\calc.png')
 window.iconphoto(True, icon)
 
 entry = Entry(window, font=('Helvetica', 16), textvariable=result_var, bd=10)
@@ -333,23 +377,38 @@ buttons = [
     ('7', 1, 0), ('8', 1, 1), ('9', 1, 2), ('/', 1, 3),
     ('4', 2, 0), ('5', 2, 1), ('6', 2, 2), ('*', 2, 3),
     ('1', 3, 0), ('2', 3, 1), ('3', 3, 2), ('-', 3, 3),
-    ('0', 4, 0), ('C', 4, 1), ('=', 4, 2), ('+', 4, 3),
+    ('C', 4, 0), ('0', 4, 1), ('=', 4, 2), ('+', 4, 3),
 ]
 
-for (text, row, col) in buttons:
-    button = Button(window, text=text, padx=20, pady=20, font=('Helvetica', 16),
-                    command=lambda t=text: button_click(t), fg= 'white',bg = '#008080', 
-                    activebackground = 'white', activeforeground='#008080', )
+def create_button(text, row, col):
+    # Change color for '=' button
+    if text == '=':
+        button = Button(window, text=text, padx=20, pady=20, font=('Helvetica', 16),
+                        command=lambda t=text: button_click(t), fg='white', bg='#F28C28',
+                        activebackground='#FF5733', activeforeground='white')
+    elif text == 'C':
+        button = Button(window, text=text, padx=20, pady=20, font=('Helvetica', 16),
+                        command=lambda t=text: button_click(t), fg='white', bg='#FFBF00',
+                        activebackground='#FF5733', activeforeground='white')    
+    else:
+        button = Button(window, text=text, padx=20, pady=20, font=('Helvetica', 16),
+                        command=lambda t=text: button_click(t), fg='white', bg='#5A5A5A',
+                        activebackground='white', activeforeground='#5A5A5A')
     button.grid(row=row, column=col)
 
+# Create buttons based on the buttons list
+for (text, row, col) in buttons:
+    create_button(text, row, col)
+
+
 ans_button = Button(window, text="ANS", padx=40, pady=20, font=('Helvetica', 16),
-                    command=lambda: button_click('ANS'), fg='white', bg='#008080',
-                    activebackground='white', activeforeground='#008080')
+                    command=lambda: button_click('ANS'), fg='white', bg='#5A5A5A',
+                    activebackground='white', activeforeground='#5A5A5A')
 ans_button.grid(row=5, column=0, columnspan=2)  # Set columnspan to 2 for 'ANS' button
 
 del_button = Button(window, text="DEL", padx=40, pady=20, font=('Helvetica', 16),
-                    command=lambda: button_click('DEL'), fg='white', bg='#008080',
-                    activebackground='white', activeforeground='#008080')
+                    command=lambda: button_click('DEL'), fg='white', bg='#5A5A5A',
+                    activebackground='white', activeforeground='#5A5A5A')
 del_button.grid(row=5, column=2, columnspan=2)  # Set columnspan to 2 for 'DEL' button
 
 
@@ -414,34 +473,38 @@ def memory_recall():
             entry.delete(0, END)
             entry.insert(END, str(prev_answers[-answer_index]))
             prev_answers = prev_answers[:-1]
-
+    
 currency_converter_button = Button(window, text="CC", padx=12, pady=20, 
                                    font=('Helvetica', 16), command=open_currency_converter,
-                                   fg = 'white', bg = '#008080', activebackground='white', activeforeground= '#008080')
+                                   fg = 'white', bg = '#5A5A5A', activebackground='white', activeforeground= '#5A5A5A')
 currency_converter_button.grid(row=6, column=0, )
 
 temperature_converter_button = Button(window, text="TC", padx=12, pady=20,
                                       font=('Helvetica', 16), command=open_temperature_converter,
-                                      fg='white', bg='#008080', activebackground='white', activeforeground='#008080')
+                                      fg='white', bg='#5A5A5A', activebackground='white', activeforeground='#5A5A5A')
 temperature_converter_button.grid(row=6, column=1, )
 
 distance_converter_button = Button(window, text="DC", padx=12, pady=20,
                                       font=('Helvetica', 16), command=open_distance_converter,
-                                      fg='white', bg='#008080', activebackground='white', activeforeground='#008080')
+                                      fg='white', bg='#5A5A5A', activebackground='white', activeforeground='#5A5A5A')
 distance_converter_button.grid(row=6, column=2, )
 
 compound_interest_button = Button(window, text="CI", padx=12, pady=20,
                                   font=('Helvetica', 16), command=open_compound_interest_calculator,
-                                  fg='white', bg='#008080', activebackground='white', activeforeground='#008080')
+                                  fg='white', bg='#5A5A5A', activebackground='white', activeforeground='#5A5A5A')
 compound_interest_button.grid(row=6, column=3, )
 memory_store_button = Button(window, text="MS", padx=10, pady=20,
-                    font=('Helvetica', 16), command=memory_store,fg='white', bg='#008080', 
-                    activebackground='white', activeforeground='#008080')
+                    font=('Helvetica', 16), command=memory_store,fg='white', bg='#5A5A5A', 
+                    activebackground='white', activeforeground='#5A5A5A')
 memory_store_button.grid(row = 8, column = 0)
 
 memory_recall_button = Button(window, text="MR", padx=10, pady=20,
-                    font=('Helvetica', 16), command=memory_recall,fg='white', bg='#008080', 
-                    activebackground='white', activeforeground='#008080')
+                    font=('Helvetica', 16), command=memory_recall,fg='white', bg='#5A5A5A', 
+                    activebackground='white', activeforeground='#5A5A5A')
 memory_recall_button.grid(row = 8, column = 1)
+constant_button = Button(window, text="const", padx=32, pady=20,
+                    font=('Helvetica', 16), command=const_window,fg='white', bg='#5A5A5A', 
+                    activebackground='white', activeforeground='#5A5A5A')
+constant_button.grid(row = 8, column = 2,columnspan=2)
 
 window.mainloop()
