@@ -1,5 +1,6 @@
 import requests
 from tkinter import *
+import math
 
 previous_result = None
 prev_answers = []
@@ -35,7 +36,6 @@ def convert_currency(amount, from_currency, to_currency):
     except Exception as e:
         print(f"Error during currency conversion: {e}")
         return None
-#This is an Edit
 
 # Function to open the currency converter window
 def open_currency_converter():
@@ -313,6 +313,259 @@ def perform_compound_interest_calculation(principal_str, rate_str, time_str, com
     except ValueError:
         result_label.config(text="Error: Please enter valid numbers for the inputs.")
 
+# SCIENTIFIC CALCULATOR FUNCTION
+def open_scientific_calculator():
+    sci_window = Toplevel(window)
+    sci_window.title("Scientific Calculator")
+    sci_window.configure(bg='#1e1e1e')
+    
+    sci_expression = ''
+    sci_result_var = StringVar()
+    sci_result_var.set('0')
+    
+    # Degree/Radian mode
+    angle_mode = StringVar()
+    angle_mode.set("DEG")  # Default to degrees
+    
+    # Scientific calculator entry
+    sci_entry = Entry(sci_window, font=('Helvetica', 16), textvariable=sci_result_var, bd=10, width=30, justify=RIGHT)
+    sci_entry.grid(row=0, column=0, columnspan=6, padx=10, pady=10, sticky="ew")
+    
+    # Angle mode toggle
+    mode_frame = Frame(sci_window, bg='#1e1e1e')
+    mode_frame.grid(row=1, column=0, columnspan=6, pady=5)
+    
+    deg_button = Radiobutton(mode_frame, text="DEG", variable=angle_mode, value="DEG", 
+                            bg='#1e1e1e', fg='white', selectcolor='#008080', font=('Helvetica', 10))
+    deg_button.pack(side=LEFT, padx=10)
+    
+    rad_button = Radiobutton(mode_frame, text="RAD", variable=angle_mode, value="RAD",
+                            bg='#1e1e1e', fg='white', selectcolor='#008080', font=('Helvetica', 10))
+    rad_button.pack(side=LEFT, padx=10)
+    
+    # Scientific calculator buttons - reorganized layout
+    sci_buttons = [
+        # Row 2: Basic functions
+        ('sin', 2, 0), ('cos', 2, 1), ('tan', 2, 2), ('π', 2, 3), ('e', 2, 4), ('C', 2, 5),
+        # Row 3: Advanced functions
+        ('asin', 3, 0), ('acos', 3, 1), ('atan', 3, 2), ('x²', 3, 3), ('x³', 3, 4), ('√', 3, 5),
+        # Row 4: Log and power functions
+        ('log', 4, 0), ('ln', 4, 1), ('(', 4, 2), (')', 4, 3), ('^', 4, 4), ('!', 4, 5),
+        # Row 5: Numbers and operations
+        ('7', 5, 0), ('8', 5, 1), ('9', 5, 2), ('/', 5, 3), ('DEL', 5, 4), ('ANS', 5, 5),
+        # Row 6: Numbers and operations
+        ('4', 6, 0), ('5', 6, 1), ('6', 6, 2), ('*', 6, 3), ('1/x', 6, 4), ('%', 6, 5),
+        # Row 7: Numbers and operations
+        ('1', 7, 0), ('2', 7, 1), ('3', 7, 2), ('-', 7, 3), ('±', 7, 4), ('=', 7, 5),
+        # Row 8: Bottom row
+        ('0', 8, 0), ('.', 8, 2), ('+', 8, 3), ('', 8, 1), ('', 8, 4), ('', 8, 5),
+    ]
+    
+    def sci_button_click(text):
+        nonlocal sci_expression
+        
+        if text == '=':
+            try:
+                # Replace mathematical constants and functions
+                eval_expression = sci_expression.replace('π', str(math.pi))
+                eval_expression = eval_expression.replace('e', str(math.e))
+                eval_expression = eval_expression.replace('^', '**')
+                
+                # Handle trigonometric functions with degree/radian conversion
+                if angle_mode.get() == "DEG":
+                    # Convert degrees to radians for trig functions
+                    import re
+                    
+                    # Handle sin with degrees
+                    sin_matches = re.finditer(r'sin\(([^)]+)\)', eval_expression)
+                    for match in sin_matches:
+                        angle = match.group(1)
+                        rad_angle = f"math.radians({angle})"
+                        eval_expression = eval_expression.replace(f"sin({angle})", f"math.sin({rad_angle})")
+                    
+                    # Handle cos with degrees
+                    cos_matches = re.finditer(r'cos\(([^)]+)\)', eval_expression)
+                    for match in cos_matches:
+                        angle = match.group(1)
+                        rad_angle = f"math.radians({angle})"
+                        eval_expression = eval_expression.replace(f"cos({angle})", f"math.cos({rad_angle})")
+                    
+                    # Handle tan with degrees
+                    tan_matches = re.finditer(r'tan\(([^)]+)\)', eval_expression)
+                    for match in tan_matches:
+                        angle = match.group(1)
+                        rad_angle = f"math.radians({angle})"
+                        eval_expression = eval_expression.replace(f"tan({angle})", f"math.tan({rad_angle})")
+                    
+                    # Handle inverse functions (convert result from radians to degrees)
+                    if 'asin(' in eval_expression:
+                        eval_expression = eval_expression.replace('asin', 'math.degrees(math.asin')
+                        eval_expression = eval_expression.replace('math.asin', 'math.degrees(math.asin')
+                    if 'acos(' in eval_expression:
+                        eval_expression = eval_expression.replace('acos', 'math.degrees(math.acos')
+                        eval_expression = eval_expression.replace('math.acos', 'math.degrees(math.acos')
+                    if 'atan(' in eval_expression:
+                        eval_expression = eval_expression.replace('atan', 'math.degrees(math.atan')
+                        eval_expression = eval_expression.replace('math.atan', 'math.degrees(math.atan')
+                
+                else:  # RAD mode
+                    # Direct radian usage
+                    if 'sin(' in eval_expression:
+                        eval_expression = eval_expression.replace('sin', 'math.sin')
+                    if 'cos(' in eval_expression:
+                        eval_expression = eval_expression.replace('cos', 'math.cos')
+                    if 'tan(' in eval_expression:
+                        eval_expression = eval_expression.replace('tan', 'math.tan')
+                    if 'asin(' in eval_expression:
+                        eval_expression = eval_expression.replace('asin', 'math.asin')
+                    if 'acos(' in eval_expression:
+                        eval_expression = eval_expression.replace('acos', 'math.acos')
+                    if 'atan(' in eval_expression:
+                        eval_expression = eval_expression.replace('atan', 'math.atan')
+                
+                # Handle other functions
+                if 'log(' in eval_expression:
+                    eval_expression = eval_expression.replace('log', 'math.log10')
+                if 'ln(' in eval_expression:
+                    eval_expression = eval_expression.replace('ln', 'math.log')
+                if '√(' in eval_expression:
+                    eval_expression = eval_expression.replace('√', 'math.sqrt')
+                
+                result = str(eval(eval_expression))
+                sci_result_var.set(result)
+                save_to_file(f"{sci_expression} = {result}")
+                sci_expression = result  # Keep result for further calculations
+            except Exception as e:
+                sci_result_var.set("Error")
+                sci_expression = ""
+        
+        elif text == 'C':
+            sci_expression = ""
+            sci_result_var.set("0")
+        
+        elif text == 'DEL':
+            if sci_expression:
+                sci_expression = sci_expression[:-1]
+                sci_result_var.set(sci_expression if sci_expression else "0")
+        
+        elif text == 'ANS':
+            sci_expression += str(previous_result) if previous_result else ""
+            sci_result_var.set(sci_expression)
+        
+        elif text == 'π':
+            sci_expression += str(math.pi)
+            sci_result_var.set(sci_expression)
+        
+        elif text == 'e':
+            sci_expression += str(math.e)
+            sci_result_var.set(sci_expression)
+        
+        elif text in ['sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'log', 'ln', '√']:
+            sci_expression += text + '('
+            sci_result_var.set(sci_expression)
+        
+        elif text == 'x²':
+            try:
+                current_value = eval(sci_expression) if sci_expression else 0
+                result = current_value ** 2
+                sci_result_var.set(str(result))
+                save_to_file(f"{current_value}² = {result}")
+                sci_expression = str(result)
+            except:
+                sci_result_var.set("Error")
+        
+        elif text == 'x³':
+            try:
+                current_value = eval(sci_expression) if sci_expression else 0
+                result = current_value ** 3
+                sci_result_var.set(str(result))
+                save_to_file(f"{current_value}³ = {result}")
+                sci_expression = str(result)
+            except:
+                sci_result_var.set("Error")
+        
+        elif text == '!':
+            try:
+                current_value = int(eval(sci_expression)) if sci_expression else 0
+                result = math.factorial(current_value)
+                sci_result_var.set(str(result))
+                save_to_file(f"{current_value}! = {result}")
+                sci_expression = str(result)
+            except:
+                sci_result_var.set("Error")
+        
+        elif text == '1/x':
+            try:
+                current_value = eval(sci_expression) if sci_expression else 0
+                if current_value != 0:
+                    result = 1 / current_value
+                    sci_result_var.set(str(result))
+                    save_to_file(f"1/{current_value} = {result}")
+                    sci_expression = str(result)
+                else:
+                    sci_result_var.set("Error: Division by zero")
+            except:
+                sci_result_var.set("Error")
+        
+        elif text == '±':
+            try:
+                if sci_expression and sci_expression[0] == '-':
+                    sci_expression = sci_expression[1:]
+                else:
+                    sci_expression = '-' + sci_expression
+                sci_result_var.set(sci_expression)
+            except:
+                sci_result_var.set("Error")
+        
+        elif text == '%':
+            try:
+                current_value = eval(sci_expression) if sci_expression else 0
+                result = current_value / 100
+                sci_result_var.set(str(result))
+                sci_expression = str(result)
+            except:
+                sci_result_var.set("Error")
+        
+        else:
+            sci_expression += text
+            sci_result_var.set(sci_expression)
+    
+    # Configure grid for uniform button sizing
+    for i in range(6):
+        sci_window.grid_columnconfigure(i, weight=1, uniform="sci_col")
+    
+    for i in range(9):
+        sci_window.grid_rowconfigure(i, weight=1)
+    
+    # Create scientific calculator buttons with uniform sizing
+    for (text, row, col) in sci_buttons:
+        if text:  # Only create button if text is not empty
+            if text == '0':
+                # Make 0 button wider
+                button = Button(sci_window, text=text, padx=15, pady=15, font=('Helvetica', 12),
+                               command=lambda t=text: sci_button_click(t), 
+                               fg='white', bg='#008080', 
+                               activebackground='white', activeforeground='#008080')
+                button.grid(row=row, column=col, columnspan=2, sticky="nsew", padx=1, pady=1)
+            elif text == '=':
+                # Make = button taller to span 2 rows
+                button = Button(sci_window, text=text, padx=15, pady=15, font=('Helvetica', 12),
+                               command=lambda t=text: sci_button_click(t), 
+                               fg='white', bg='#ff4500', 
+                               activebackground='white', activeforeground='#ff4500')
+                button.grid(row=row, column=col, rowspan=2, sticky="nsew", padx=1, pady=1)
+            else:
+                button = Button(sci_window, text=text, padx=15, pady=15, font=('Helvetica', 12),
+                               command=lambda t=text: sci_button_click(t), 
+                               fg='white', bg='#008080', 
+                               activebackground='white', activeforeground='#008080')
+                button.grid(row=row, column=col, sticky="nsew", padx=1, pady=1)
+    
+    # Add a back button to close scientific calculator
+    back_button = Button(sci_window, text="Back to Main", padx=10, pady=10, font=('Helvetica', 12),
+                        command=sci_window.destroy, fg='white', bg='#ff4500',
+                        activebackground='white', activeforeground='#ff4500')
+    back_button.grid(row=9, column=0, columnspan=6, sticky="ew", padx=10, pady=10)
 #MAIN WINDOW
 window = Tk()
 
@@ -323,8 +576,8 @@ expression = ''
 #window.geometry('300x400')
 window.configure(bg='#1e1e1e')
 window.title('CALCULATOR')
-icon = PhotoImage(file='calc.png')
-window.iconphoto(True, icon)
+# icon = PhotoImage(file='calc.png')
+# window.iconphoto(True, icon)
 
 entry = Entry(window, font=('Helvetica', 16), textvariable=result_var, bd=10)
 entry.grid(row=0, column=0, columnspan=4)
@@ -415,33 +668,41 @@ def memory_recall():
             entry.insert(END, str(prev_answers[-answer_index]))
             prev_answers = prev_answers[:-1]
 
+# SCIENTIFIC CALCULATOR BUTTON
+scientific_calc_button = Button(window, text="SC", padx=12, pady=20,
+                               font=('Helvetica', 16), command=open_scientific_calculator,
+                               fg='white', bg='#008080', 
+                               activebackground='white', activeforeground='#008080')
+scientific_calc_button.grid(row=6, column=0)
+
 currency_converter_button = Button(window, text="CC", padx=12, pady=20, 
                                    font=('Helvetica', 16), command=open_currency_converter,
                                    fg = 'white', bg = '#008080', activebackground='white', activeforeground= '#008080')
-currency_converter_button.grid(row=6, column=0, )
+currency_converter_button.grid(row=6, column=1, )
 
 temperature_converter_button = Button(window, text="TC", padx=12, pady=20,
                                       font=('Helvetica', 16), command=open_temperature_converter,
                                       fg='white', bg='#008080', activebackground='white', activeforeground='#008080')
-temperature_converter_button.grid(row=6, column=1, )
+temperature_converter_button.grid(row=6, column=2, )
 
 distance_converter_button = Button(window, text="DC", padx=12, pady=20,
                                       font=('Helvetica', 16), command=open_distance_converter,
                                       fg='white', bg='#008080', activebackground='white', activeforeground='#008080')
-distance_converter_button.grid(row=6, column=2, )
+distance_converter_button.grid(row=6, column=3, )
 
 compound_interest_button = Button(window, text="CI", padx=12, pady=20,
                                   font=('Helvetica', 16), command=open_compound_interest_calculator,
                                   fg='white', bg='#008080', activebackground='white', activeforeground='#008080')
-compound_interest_button.grid(row=6, column=3, )
+compound_interest_button.grid(row=7, column=0, )
+
 memory_store_button = Button(window, text="MS", padx=10, pady=20,
                     font=('Helvetica', 16), command=memory_store,fg='white', bg='#008080', 
                     activebackground='white', activeforeground='#008080')
-memory_store_button.grid(row = 8, column = 0)
+memory_store_button.grid(row = 7, column = 1)
 
 memory_recall_button = Button(window, text="MR", padx=10, pady=20,
                     font=('Helvetica', 16), command=memory_recall,fg='white', bg='#008080', 
                     activebackground='white', activeforeground='#008080')
-memory_recall_button.grid(row = 8, column = 1)
+memory_recall_button.grid(row = 7, column = 2)
 
 window.mainloop()
